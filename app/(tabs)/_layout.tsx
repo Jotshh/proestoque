@@ -1,33 +1,32 @@
-import { Tabs } from 'expo-router';
 import React from 'react';
-
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons'; // Importação dos ícones
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
+        tabBarActiveTintColor: '#007AFF', // Cor da aba ativa
+        headerShown: false,              // Remove o header superior se preferir
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name="index" // Refere-se ao arquivo index.tsx da pasta (tabs)
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home-outline" size={size} color={color} />
+          ),
         }}
       />
+      
       <Tabs.Screen
-        name="explore"
+        name="configuracoes" // Refere-se ao arquivo configuracoes.tsx da pasta (tabs)
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Configurações',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings-outline" size={size} color={color} />
+          ),
         }}
       />
     </Tabs>

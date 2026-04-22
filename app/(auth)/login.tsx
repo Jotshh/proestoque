@@ -32,7 +32,7 @@ export default function Login({ children }: { children: React.ReactNode }) {
           keyboardShouldPersistTaps="handled" 
           showsVerticalScrollIndicator={false}
         >
-            <LogoProEstoque />
+            <LogoProEstoque size="md" />
 
             <Text style={styles.subTitle}>
               Bem-vindo de volta!

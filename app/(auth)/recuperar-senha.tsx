@@ -44,7 +44,7 @@ export default function RecuperarSenha({ children }: { children?: React.ReactNod
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <LogoProEstoque />
+          <LogoProEstoque size="md" />
 
           <View style={styles.container}>
             {isSubmitted ? (

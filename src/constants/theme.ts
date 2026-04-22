@@ -33,7 +33,7 @@ export const Colors = {
   // Atalhos semânticos (os mais usados no dia a dia)
   background: "#f9fafbe0",    // Fundo das telas
   surface:    "#ffffff",    // Fundo de cards
-  textPrimary:   "#111827", // Texto principal
+  textPrimary:   "#000058", // Texto principal
   textSecondary: "#6b7280", // Texto secundário/legenda
   border:        "#e5e7eb", // Bordas de inputs e cards
   white:         "#ffffff",

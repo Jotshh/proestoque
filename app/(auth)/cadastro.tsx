@@ -76,7 +76,7 @@ export default function Cadastro() {
 
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
 
-      <LogoProEstoque />
+      <LogoProEstoque size="md" />
 
       <Text style={styles.title}>
         Criar Conta

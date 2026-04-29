@@ -1,8 +1,5 @@
-// Este arquivo é a fonte da verdade visual do seu app.
-// NUNCA coloque cores, tamanhos ou fontes hardcoded fora daqui.
-
 export const Colors = {
-  // Paleta primária (violeta)
+  // Paleta primária (azul)
   primary: {
     50:  "#f5f3ff",
     100: "#3217EA",
@@ -12,7 +9,6 @@ export const Colors = {
     700: "#00007E",
     900: "#000058",
   },
-  
   // Tons neutros (cinza)
   neutral: {
     50:  "#f9fafb",
@@ -27,8 +23,8 @@ export const Colors = {
   // Status
   success: { bg: "#d1fae5", text: "#065f46", border: "#34d399" },
   warning: { bg: "#fef3c7", text: "#92400e", border: "#fbbf24" },
-  danger:  { bg: "#fee2e2", text: "#991b1b", border: "#f87171" },
-  info:    { bg: "#dbeafe", text: "#1e40af", border: "#60a5fa" },
+  danger:  { bg: "#fee2e2", text: "#CD0007", border: "#f87171" },
+  info:    { bg: "#dbeafe", text: "#010101", border: "#60a5fa" },
 
   // Atalhos semânticos (os mais usados no dia a dia)
   background: "#f9fafbe0",    // Fundo das telas

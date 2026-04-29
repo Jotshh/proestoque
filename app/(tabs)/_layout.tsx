@@ -1,31 +1,43 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons'; // Importação dos ícones
+import { Ionicons } from '@expo/vector-icons'; 
+import { Colors } from '@/src/constants/theme';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#007AFF', // Cor da aba ativa
-        headerShown: false,              // Remove o header superior se preferir
+        tabBarActiveTintColor: Colors.primary[700],
+        tabBarInactiveTintColor: Colors.textSecondary,
+        headerShown: false,         
       }}
     >
       <Tabs.Screen
-        name="index" // Refere-se ao arquivo index.tsx da pasta (tabs)
+        name="index" 
         options={{
           title: 'Home',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
+            <Ionicons name="home" size={size} color={color} />
           ),
         }}
       />
       
       <Tabs.Screen
-        name="configuracoes" // Refere-se ao arquivo configuracoes.tsx da pasta (tabs)
+        name="produtos"
+        options={{
+          title: 'Produtos',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="folder-open-sharp" size={size} color={color} />
+          ),
+        }}
+      />
+      
+      <Tabs.Screen
+        name="configuracoes"
         options={{
           title: 'Configurações',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings-outline" size={size} color={color} />
+            <Ionicons name="settings-sharp" size={size} color={color} />
           ),
         }}
       />

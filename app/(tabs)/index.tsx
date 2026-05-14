@@ -1,3 +1,4 @@
+import { useAuth } from "@/src/contexts/AuthContext";
 import { useState, useMemo, useCallback } from "react";
 import { View, Text, FlatList, RefreshControl, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -30,8 +31,9 @@ const getStatusStyle = (item: Produto) => {
 };
 
 export default function HomeScreen() {
+  const { user } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
-
+  
   const alertas = useMemo(() => getProdutosComEstoqueBaixo(), []);
   const valorTotal = useMemo(() => getValorTotalEstoque(), []);
 
@@ -45,14 +47,14 @@ export default function HomeScreen() {
     []
   );
 
-  const usuario = "Josiel";
+  const hora = new Date().getHours();
+  const saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     setTimeout(() => setRefreshing(false), 1500);
   }, []);
 
-  // ── Cards de resumo — dados para o .map() ─────────────────
   const cardsResumo = useMemo(
     () => [
       {
@@ -91,7 +93,7 @@ export default function HomeScreen() {
     <View style={styles.headerContainer}>
       <View style={styles.headerTopRow}>
         <View>
-          <Text style={styles.greeting}>Olá, {usuario} 👋</Text>
+          <Text style={styles.greeting}>{saudacao}, {user?.nome?.split(" ")[0]} 👋</Text>
           <Text style={styles.subtitle}>Visão geral do estoque · {hoje}</Text>
         </View>
 

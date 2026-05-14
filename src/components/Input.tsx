@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { View, TextInput, Text, Pressable, StyleSheet, TextInputProps } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, Radius } from "@/src/constants/theme";
@@ -11,14 +11,14 @@ interface InputProps extends TextInputProps {
   isPassword?: boolean;
 }
 
-export default function Input({
+const Input = forwardRef<TextInput, InputProps>(({
   label,
   error,
   hint,
   leftIcon,
   isPassword = false,
   ...rest
-}: InputProps) {
+}, ref) => {
   const [focused, setFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -35,7 +35,6 @@ export default function Input({
           hasError && styles.errorBorder,
         ]}
       >
-        {/* Ícone à esquerda */}
         {leftIcon && (
           <Ionicons
             name={leftIcon}
@@ -46,6 +45,7 @@ export default function Input({
         )}
 
         <TextInput
+          ref={ref}
           style={styles.input}
           placeholderTextColor={Colors.neutral[400]}
           secureTextEntry={isPassword && !showPassword}
@@ -54,7 +54,6 @@ export default function Input({
           {...rest}
         />
 
-        {/* Botão de mostrar/ocultar senha */}
         {isPassword && (
           <Pressable onPress={() => setShowPassword((v) => !v)} style={styles.rightIcon}>
             <Ionicons
@@ -66,12 +65,13 @@ export default function Input({
         )}
       </View>
 
-      {/* Mensagem de erro ou hint */}
       {hasError && <Text style={styles.errorText}>{error}</Text>}
       {!hasError && hint && <Text style={styles.hintText}>{hint}</Text>}
     </View>
   );
-}
+});
+
+export default Input;
 
 const styles = StyleSheet.create({
   wrapper: { marginBottom: Spacing[4] },

@@ -1,29 +1,41 @@
-import {
-  KeyboardAvoidingView,
-  ScrollView,
-  Platform,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import LogoProEstoque from "@/src/components/LogoProEstoque";
+import { useState, useRef } from "react";
+import { KeyboardAvoidingView, ScrollView, Platform, StatusBar, StyleSheet, Text, View, Alert, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Colors, Radius, Spacing, Typography } from "@/src/constants/theme";
+import { Link, useRouter, router } from "expo-router";
+import { useAuth } from "@/src/contexts/AuthContext";
 import Input from "@/src/components/Input";
-import { Link, useRouter } from "expo-router";
 import Button from "@/src/components/Button";
+import { Colors, Radius, Spacing, Typography } from "@/src/constants/theme";
+import LogoProEstoque from "@/src/components/LogoProEstoque";
 
 export default function Login({ children }: { children: React.ReactNode }) {
+
+  const emailRef    = useRef<TextInput>(null);
+  const senhaRef    = useRef<TextInput>(null);
+
+  const { login, isLoading } = useAuth(); 
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
   const router = useRouter();
+
+  const handleLogin = async () => {
+    if (!email.trim() || !senha.trim()) {
+      Alert.alert("Atenção", "Preencha e-mail e senha.");
+      return;
+    }
+
+    try {
+      await login(email, senha); 
+    } catch (error) {
+      Alert.alert("Erro", "E-mail ou senha inválidos.");
+    }
+  };
 
   return (
 
     <SafeAreaView style={styles.safe}>
 
-
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
-
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -45,15 +57,26 @@ export default function Login({ children }: { children: React.ReactNode }) {
 
             <Input
               label="Email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
               leftIcon="at"
               placeholder="seuemail@gmail.com"
+              returnKeyType="next"    
+              ref={emailRef}
+              onSubmitEditing={() => senhaRef.current?.focus()}                 
             />
-
             <Input
+              ref={senhaRef}
               label="Senha"
+              value={senha}
+              onChangeText={setSenha}
               leftIcon="lock-closed-sharp"
               placeholder="********"
               isPassword={true}
+              returnKeyType="done"
+              onSubmitEditing={handleLogin}
             />
 
             <Link href="/recuperar-senha" style={styles.forgotPassword}>
@@ -63,7 +86,8 @@ export default function Login({ children }: { children: React.ReactNode }) {
             <View style={styles.buttonGroup}>
               <Button
                 label="Entrar"
-                onPress={() => router.push("/")}
+                onPress={handleLogin}
+                loading={isLoading}
                 fullWidth
               />
             </View>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   View,
   ScrollView,
@@ -8,6 +8,7 @@ import {
   Platform,
   StatusBar,
   Text,
+  TextInput,
 } from "react-native";
 import Button from "@/src/components/Button";
 import Input from "@/src/components/Input";
@@ -34,6 +35,11 @@ export default function Cadastro() {
   const [errors, setErrors] = useState<Partial<FormFields>>({});
   const [loading, setLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const nomeRef     = useRef<TextInput>(null);
+  const emailRef    = useRef<TextInput>(null);
+  const senhaRef    = useRef<TextInput>(null);
+  const confirmaRef = useRef<TextInput>(null);
 
   const updateField = (field: keyof FormFields, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -88,6 +94,7 @@ export default function Cadastro() {
                 <Text style={styles.subTitle}>Preencha seus dados para acessar o ProEstoque.</Text>
 
                 <Input
+                  ref={nomeRef}
                   label="Nome completo"
                   placeholder="João da Silva"
                   leftIcon="person"
@@ -96,8 +103,10 @@ export default function Cadastro() {
                   error={errors.nome}
                   autoCapitalize="words"
                   returnKeyType="next"
+                  onSubmitEditing={() => emailRef.current?.focus()}
                 />
                 <Input
+                  ref={emailRef}
                   label="E-mail"
                   placeholder="seuemail@gmail.com"
                   leftIcon="at"
@@ -107,8 +116,10 @@ export default function Cadastro() {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   returnKeyType="next"
+                  onSubmitEditing={() => senhaRef.current?.focus()}
                 />
                 <Input
+                  ref={senhaRef}
                   label="Senha"
                   placeholder="********"
                   leftIcon="lock-closed-sharp"
@@ -117,8 +128,10 @@ export default function Cadastro() {
                   error={errors.senha}
                   isPassword
                   returnKeyType="next"
+                  onSubmitEditing={() => confirmaRef.current?.focus()}
                 />
                 <Input
+                  ref={confirmaRef}
                   label="Confirmar senha"
                   placeholder="********"
                   leftIcon="lock-closed-sharp"

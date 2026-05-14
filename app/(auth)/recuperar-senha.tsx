@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Alert
 } from "react-native";
 import LogoProEstoque from "@/src/components/LogoProEstoque";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -22,13 +23,21 @@ export default function RecuperarSenha({ children }: { children?: React.ReactNod
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleEnviar = () => {
-    
-    if (!email.includes("@") || !email.includes(".")) {
-       
-        return;
+    if (!email.trim()) {
+      Alert.alert("Atenção", "Por favor, informe seu e-mail.");
+      return;
     }
-    
-    setIsSubmitted(true);
+
+    if (!email.includes("@") || !email.includes(".")) {
+      Alert.alert("Erro", "Por favor, informe um e-mail válido.");
+      return;
+    }
+
+    Alert.alert(
+      "E-mail Enviado",
+      "Se este e-mail estiver cadastrado, você receberá as instruções para redefinir sua senha em instantes.",
+      [{ text: "OK", onPress: () => setIsSubmitted(true) }]
+    );
   };
 
   return (
@@ -79,6 +88,8 @@ export default function RecuperarSenha({ children }: { children?: React.ReactNod
                   onChangeText={setEmail}
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  returnKeyType="done"
+                  onSubmitEditing={handleEnviar}
                 />
 
                 <View style={styles.buttonGroup}>

@@ -3,6 +3,7 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { View, ActivityIndicator } from "react-native";
 import { AuthProvider, useAuth } from "@/src/contexts/AuthContext";
 import { Colors } from "@/src/constants/theme";
+import { ProductsProvider } from "@/src/contexts/ProductsContext";
 
 function NavigationGuard() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -36,13 +37,14 @@ function NavigationGuard() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-
+      <ProductsProvider>
     <Stack screenOptions={{ 
       headerShown: false,
         
     }} />
 
     <NavigationGuard />
+    </ProductsProvider>
     </AuthProvider>
 
   );

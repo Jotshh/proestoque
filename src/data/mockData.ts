@@ -14,6 +14,7 @@ export type Produto = {
   preco: number;
   unidade: string;         
   ultimaMovimentacao: string; 
+  observacao?: string;
 };
 
 export type Movimentacao = {

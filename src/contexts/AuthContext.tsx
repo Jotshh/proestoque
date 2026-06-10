@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-//posso colocar esse types no src/types/index.ts ?
+import AsyncStorage from "@react-native-async-storage/async-storage"; 
+import { api } from "@/src/services/api";
 
 type User = { 
   id: string;
@@ -58,28 +57,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (email: string, senha: string) => {
     setIsLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      if (!email || !senha) throw new Error("Preencha todos os campos");
-
-      const tokenSimulado = "token_simulado_" + Date.now();
-      const userSimulado: User = {
-        id: "user_1",
-        nome: email.split("@")[0],
-        email,
-      };
+      const response = await api.post("/auth/login", { email, senha });
+      const { usuario, token } = response.data;
 
       await AsyncStorage.multiSet([
-        [STORAGE_KEYS.TOKEN, tokenSimulado],
-        [STORAGE_KEYS.USER, JSON.stringify(userSimulado)],
+      [STORAGE_KEYS.TOKEN, token],
+      [STORAGE_KEYS.USER, JSON.stringify(usuario)],
       ]);
 
-      setToken(tokenSimulado);
-      setUser(userSimulado);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      setToken(token);
+    setUser(usuario);
+  } catch (error: any) {
+    // Axios encapsula o erro — o body da resposta fica em error.response.data
+    console.warn("Erro ao fazer login:", error.response?.data ?? error.message);
+    const mensagem = error.response?.data?.erro ?? "Erro ao fazer login";
+    throw new Error(mensagem);
+  } finally {
+    setIsLoading(false);
+  }
+}, []);
+
+const registrar = useCallback(async (nome: string, email: string, senha: string) => {
+  setIsLoading(true);
+  try {
+    const response = await api.post("/auth/registro", { nome, email, senha });
+    const { usuario, token } = response.data;
+
+    await AsyncStorage.multiSet([
+      [STORAGE_KEYS.TOKEN, token],
+      [STORAGE_KEYS.USER, JSON.stringify(usuario)],
+    ]);
+
+    setToken(token);
+    setUser(usuario);
+  } catch (error: any) {
+    const mensagem = error.response?.data?.erro ?? "Erro ao criar conta";
+    throw new Error(mensagem);
+  } finally {
+    setIsLoading(false);
+  }
+}, []);
 
   const logout = useCallback(async () => {
     await AsyncStorage.multiRemove([STORAGE_KEYS.TOKEN, STORAGE_KEYS.USER]);

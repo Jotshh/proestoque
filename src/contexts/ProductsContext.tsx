@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer, useEffect, useCallback } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PRODUTOS_MOCK, type Produto } from "@/src/data/mockData";
 import type { ProdutoFormData } from "@/src/schemas/produtoSchema";
+import { api } from "@/src/services/api";
 
 // ── Tipos ────────────────────────────────────────────────────
 type ProductsState = {
@@ -23,9 +23,6 @@ type ProductsContextType = {
   deletarProduto: (id: string) => Promise<void>;
   getProdutoById: (id: string) => Produto | undefined;
 };
-
-// ── Chave do AsyncStorage ────────────────────────────────────
-const STORAGE_KEY = "@proestoque:produtos";
 
 // ── Reducer ─────────────────────────────────────────────────
 // Função PURA: recebe estado atual + ação, retorna NOVO estado
@@ -67,14 +64,12 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
     isLoading: true,
   });
 
-  // Carrega produtos do AsyncStorage na inicialização
+  // Carrega produtos do backend na inicialização
   useEffect(() => {
     async function carregarProdutos() {
       try {
-        const json = await AsyncStorage.getItem(STORAGE_KEY);
-        // Se houver dados salvos, usa eles; senão, usa o mock inicial
-        const produtos = json ? JSON.parse(json) : PRODUTOS_MOCK;
-        dispatch({ type: "LOAD", payload: produtos });
+        const response = await api.get<Produto[]>("/produtos");
+        dispatch({ type: "LOAD", payload: response.data });
       } catch {
         dispatch({ type: "LOAD", payload: PRODUTOS_MOCK });
       }
@@ -82,42 +77,21 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
     carregarProdutos();
   }, []);
 
-  // Helper: persiste os produtos toda vez que o estado muda
-  const persistir = useCallback(async (produtos: Produto[]) => {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(produtos));
-  }, []);
-
   // ── CRUD ─────────────────────────────────────────────────
   const adicionarProduto = useCallback(async (data: ProdutoFormData) => {
-    const novoProduto: Produto = {
-      ...data,
-      id: "prod_" + Date.now(),
-      ultimaMovimentacao: new Date().toISOString(),
-      observacao: data.observacao ?? "",
-    };
-    dispatch({ type: "ADD", payload: novoProduto });
-    // Persiste a nova lista (state.produtos ainda não tem o novo item aqui,
-    // então construímos a lista manualmente)
-    await persistir([novoProduto, ...state.produtos]);
-  }, [state.produtos, persistir]);
+    const response = await api.post<Produto>("/produtos", data);
+    dispatch({ type: "ADD", payload: response.data });
+  }, []);
 
   const editarProduto = useCallback(async (id: string, data: ProdutoFormData) => {
-    const produtoAtualizado: Produto = {
-      ...data,
-      id,
-      ultimaMovimentacao: new Date().toISOString(),
-      observacao: data.observacao ?? "",
-    };
-    dispatch({ type: "UPDATE", payload: produtoAtualizado });
-    await persistir(
-      state.produtos.map((p) => (p.id === id ? produtoAtualizado : p))
-    );
-  }, [state.produtos, persistir]);
+    const response = await api.put<Produto>(`/produtos/${id}`, data);
+    dispatch({ type: "UPDATE", payload: response.data });
+  }, []);
 
   const deletarProduto = useCallback(async (id: string) => {
+    await api.delete(`/produtos/${id}`);
     dispatch({ type: "DELETE", payload: id });
-    await persistir(state.produtos.filter((p) => p.id !== id));
-  }, [state.produtos, persistir]);
+  }, []);
 
   const getProdutoById = useCallback(
     (id: string) => state.produtos.find((p) => p.id === id),

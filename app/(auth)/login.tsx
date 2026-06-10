@@ -26,8 +26,8 @@ export default function Login({ children }: { children: React.ReactNode }) {
 
     try {
       await login(email, senha); 
-    } catch (error) {
-      Alert.alert("Erro", "E-mail ou senha inválidos.");
+    } catch (error: any) {
+      Alert.alert("Erro", error?.message ?? "E-mail ou senha inválidos.");
     }
   };
 

@@ -2,22 +2,15 @@ import { useAuth } from "@/src/contexts/AuthContext";
 import { useState, useMemo, useCallback } from "react";
 import { View, Text, FlatList, RefreshControl, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import {
-  PRODUTOS_MOCK,
-  CATEGORIAS_MOCK,
-  getProdutosComEstoqueBaixo,
-  getValorTotalEstoque, 
-  formatarPreco,
-  type Produto,
-} from "@/src/data/mockData";
+import { useProducts, type Produto } from "@/src/contexts/ProductsContext";
+import { LoadingView } from "@/src/components/LoadingView";
+import { formatarPreco } from "@/src/utils/formatters";
 import { Colors, Radius, Spacing, Typography } from "@/src/constants/theme";
 
-const getStatusStyle = (item: Produto) => {
-  const semEstoque = item.quantidade === 0;
-  const emAlerta = !semEstoque && item.quantidade < item.quantidadeMinima;
+  const getStatusStyle = (item: Produto) => {
+  const semEstoque = Number(item.quantidade ?? 0) === 0;
+  const emAlerta = !semEstoque && Number(item.quantidade ?? 0) < Number(item.quantidadeMinima ?? 0);
 
   if (semEstoque) {
     return { label: "Sem estoque", bg: Colors.danger.bg, text: Colors.danger.text };
@@ -32,84 +25,74 @@ const getStatusStyle = (item: Produto) => {
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  const { produtos, isLoading, carregarProdutos } = useProducts();
   const [refreshing, setRefreshing] = useState(false);
-  
-  const alertas = useMemo(() => getProdutosComEstoqueBaixo(), []);
-  const valorTotal = useMemo(() => getValorTotalEstoque(), []);
 
-  const hoje = useMemo(
-    () =>
-      new Date().toLocaleDateString("pt-BR", {
-        weekday: "long",
-        day: "2-digit",
-        month: "long",
-      }),
-    []
+  // Cálculos derivados — useMemo para não recalcular a cada re-render
+  const alertas = useMemo(
+    () => produtos.filter(p => Number(p.quantidade ?? 0) < Number(p.quantidadeMinima ?? 0)),
+    [produtos]
+  );
+
+  const valorTotalEstoque = useMemo(
+    () => produtos.reduce((acc, p) => acc + Number(p.quantidade ?? 0) * Number(p.preco ?? 0), 0),
+    [produtos]
   );
 
   const hora = new Date().getHours();
   const saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
 
-  const onRefresh = useCallback(() => {
+  const cardsResumo = useMemo(() => [
+    { id: "total",      titulo: "Produtos",       valor: produtos.length,              icone: "cube-outline" as const },
+    { id: "alertas",    titulo: "Alertas",         valor: alertas.length,               icone: "alert-circle-outline" as const },
+    { id: "valor",      titulo: "Valor em estoque", valor: formatarPreco(valorTotalEstoque), icone: "cash-outline" as const },
+  ], [produtos.length, alertas.length, valorTotalEstoque]);
+
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1500);
+    await carregarProdutos();
+    setRefreshing(false);
+  }, [carregarProdutos]);
+
+  const renderItem = useCallback(({ item }: { item: Produto }) => {
+    const status = getStatusStyle(item);
+
+    return (
+      <View style={styles.productCard}>
+        <View style={styles.productInfo}>
+          <View style={styles.productIconContainer}>
+            <Ionicons name="cube-outline" size={20} color={Colors.primary[600]} />
+          </View>
+          <View style={styles.productTextContainer}>
+            <Text style={styles.productName}>{item.nome}</Text>
+            <Text style={styles.productMeta}>{item.quantidade} {item.unidade} • {formatarPreco(item.preco)}</Text>
+          </View>
+        </View>
+        <View style={[styles.statusBadge, { backgroundColor: status.bg, borderColor: status.bg }]}> 
+          <Text style={[styles.statusLabel, { color: status.text }]}>{status.label}</Text>
+        </View>
+      </View>
+    );
   }, []);
 
-  const cardsResumo = useMemo(
-    () => [
-      {
-        id: "total",
-        titulo: "Produtos",
-        valor: PRODUTOS_MOCK.length,
-        icone: "📦",
-        backgroundColor: Colors.surface,     
-      },
-      {
-        id: "alertas",
-        titulo: "Alertas",
-        valor: alertas.length,
-        icone: "⚠️",
-        backgroundColor: Colors.warning.bg,
-      },
-      {
-        id: "categorias",
-        titulo: "Categorias",
-        valor: CATEGORIAS_MOCK.length,
-        icone: "🗂️",
-        backgroundColor: Colors.surface,
-      },
-      {
-        id: "valor",
-        titulo: "Em Estoque",
-        valor: formatarPreco(valorTotal),
-        icone: "💰",
-        backgroundColor: Colors.success.bg,
-      },
-    ],
-    [alertas.length, valorTotal]
-  );
+  if (isLoading && produtos.length === 0) {
+    return <LoadingView mensagem="Carregando dashboard..." />;
+  }
 
   const DashboardHeader = () => (
     <View style={styles.headerContainer}>
       <View style={styles.headerTopRow}>
         <View>
           <Text style={styles.greeting}>{saudacao}, {user?.nome?.split(" ")[0]} 👋</Text>
-          <Text style={styles.subtitle}>Visão geral do estoque · {hoje}</Text>
+          <Text style={styles.subtitle}>Visão geral do estoque em tempo real.</Text>
         </View>
-
-        <Ionicons
-          name="add-circle-outline"
-          size={28}
-          color={Colors.primary[700]}
-          onPress={() => router.push("/(tabs)/produtos")}
-        />
       </View>
 
       <View style={styles.cardsGrid}>
         {cardsResumo.map((card) => (
-          <View key={card.id} style={[styles.cardResumo, { backgroundColor: card.backgroundColor }]}>
+          <View key={card.id} style={styles.cardResumo}>
             <View style={styles.cardIconWrapper}>
-              <Text style={{ fontSize: 20 }}>{card.icone}</Text>
+              <Ionicons name={card.icone} size={20} color={Colors.primary[600]} />
             </View>
             <Text style={styles.cardValue}>{card.valor}</Text>
             <Text style={styles.cardLabel}>{card.titulo}</Text>
@@ -120,15 +103,13 @@ export default function HomeScreen() {
       {alertas.length > 0 && (
         <View style={styles.alertContainer}>
           <Text style={styles.alertTitle}>⚠️ Estoque crítico ({alertas.length})</Text>
-          {alertas.slice(0, 3).map((produto) => (
-            <View key={produto.id} style={styles.alertItem}>
-              <Text style={styles.alertName}>{produto.nome}</Text>
-              <Text style={styles.alertSubtitle}>
-                {produto.quantidade} / {produto.quantidadeMinima} {produto.unidade}
-              </Text>
+          {alertas.slice(0, 3).map(p => (
+            <View key={p.id} style={styles.alertItem}>
+              <Text style={styles.alertName}>{p.nome}</Text>
+              <Text style={styles.alertSubtitle}>{p.quantidade}/{p.quantidadeMinima} {p.unidade}</Text>
             </View>
           ))}
-          {alertas.length > 3 && <Text style={styles.alertLink}>Ver todos os {alertas.length} alertas →</Text>}
+          <Text style={styles.alertLink}>Verificar estoque</Text>
         </View>
       )}
 
@@ -136,39 +117,15 @@ export default function HomeScreen() {
     </View>
   );
 
-  const renderProduto = ({ item }: { item: Produto }) => {
-    const status = getStatusStyle(item);
-
-    return (
-      <View style={styles.productCard}>
-        <View style={styles.productInfo}>
-          <View style={styles.productIconContainer}>
-            <Text style={{ fontSize: 18 }}>📦</Text>
-          </View>
-          <View style={styles.productTextContainer}>
-            <Text style={styles.productName}>{item.nome}</Text>
-            <Text style={styles.productMeta}>{item.quantidade} {item.unidade}</Text>
-          </View>
-        </View>
-
-        <View style={[styles.statusBadge, { backgroundColor: status.bg, borderColor: status.bg }]}> 
-          <Text style={[styles.statusLabel, { color: status.text }]}>{status.label}</Text>
-        </View>
-      </View>
-    );
-  };
-
   return (
     <SafeAreaView style={styles.screen}>
-      <StatusBar style="dark" />
-
-      <FlatList<Produto>
-        data={PRODUTOS_MOCK}
-        keyExtractor={(item) => item.id}
-        renderItem={renderProduto}
+      <FlatList
+        data={produtos}
+        keyExtractor={item => item.id}
+        renderItem={renderItem}
         ListHeaderComponent={DashboardHeader}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary[700]} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}

@@ -3,14 +3,19 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useProducts } from "@/src/contexts/ProductsContext";
-import { CATEGORIAS_MOCK, type Produto } from "@/src/data/mockData";
+import { useProducts, type Produto } from "@/src/contexts/ProductsContext";
 import Input from "@/src/components/Input";
 import { Colors, Spacing } from "@/src/constants/theme";
+import { useCategorias } from "@/src/hooks/useCategorias";
+import { LoadingView } from "@/src/components/LoadingView";
+import { ErrorView } from "@/src/components/ErrorView";
+
 
 export default function ListaProdutos() {
-  // ✅ Dados vêm do contexto — reativos a qualquer CRUD
-  const { produtos } = useProducts();
+
+  const { produtos, isLoading, error, carregarProdutos } = useProducts();
+  const [refreshing, setRefreshing] = useState(false);
+  const { categorias } = useCategorias();
   const [busca, setBusca] = useState("");
   const [categoriaAtiva, setCategoriaAtiva] = useState<string | null>(null);
 
@@ -22,9 +27,15 @@ export default function ListaProdutos() {
     });
   }, [produtos, busca, categoriaAtiva]); // ← 'produtos' é a dependência do contexto
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await carregarProdutos();
+    setRefreshing(false);
+  }, [carregarProdutos]);
+
   const renderProduto = useCallback(({ item }: { item: Produto }) => {
-    const emAlerta = item.quantidade < item.quantidadeMinima;
-    const semEstoque = item.quantidade === 0;
+    const semEstoque = Number(item.quantidade ?? 0) === 0;
+    const emAlerta = !semEstoque && Number(item.quantidade ?? 0) < Number(item.quantidadeMinima ?? 0);
 
     return (
       // Toque no item → editar
@@ -39,7 +50,7 @@ export default function ListaProdutos() {
         <View style={[
           styles.badge,
           semEstoque ? styles.badgeSemEstoque :
-          emAlerta ? styles.badgeAlerta : styles.badgeNormal
+            emAlerta ? styles.badgeAlerta : styles.badgeNormal
         ]}>
           <Text style={styles.badgeText}>
             {semEstoque ? "Sem estoque" : emAlerta ? "Baixo" : "Normal"}
@@ -47,7 +58,18 @@ export default function ListaProdutos() {
         </View>
       </TouchableOpacity>
     );
-  }, []);
+  }, [router]);
+
+  // ── Estados de UI ────────────────────────────────────────
+  if (isLoading && produtos.length === 0) {
+    // Só mostra loading na primeira carga (sem dados em cache)
+    return <LoadingView mensagem="Buscando produtos..." />;
+  }
+
+  if (error && produtos.length === 0) {
+    // Só mostra erro se não há dados para exibir
+    return <ErrorView mensagem={error} onRetry={carregarProdutos} />;
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
@@ -55,6 +77,8 @@ export default function ListaProdutos() {
         data={produtosFiltrados}
         keyExtractor={(item) => item.id}
         renderItem={renderProduto}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
         ListHeaderComponent={
           <View style={styles.header}>
             <Input value={busca} onChangeText={setBusca}
@@ -62,7 +86,7 @@ export default function ListaProdutos() {
               autoCapitalize="none" autoCorrect={false} />
             {/* Chips de categoria */}
             <View style={styles.chips}>
-              {CATEGORIAS_MOCK.map((cat) => (
+              {categorias.map((cat) => (
                 <TouchableOpacity key={cat.id}
                   style={[styles.chip, categoriaAtiva === cat.id && styles.chipAtivo]}
                   onPress={() => setCategoriaAtiva(p => p === cat.id ? null : cat.id)}>
@@ -95,6 +119,7 @@ export default function ListaProdutos() {
       </TouchableOpacity>
     </SafeAreaView>
   );
+
 }
 
 const styles = StyleSheet.create({

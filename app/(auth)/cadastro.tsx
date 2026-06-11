@@ -8,13 +8,14 @@ import {
   Platform,
   StatusBar,
   Text,
-  TextInput,
+  TextInput, Alert
 } from "react-native";
 import Button from "@/src/components/Button";
 import Input from "@/src/components/Input";
 import { Colors, Radius, Spacing, Typography } from "@/src/constants/theme";
 import LogoProEstoque from "@/src/components/LogoProEstoque";
 import { Link, useRouter } from "expo-router";
+import { useAuth } from "@/src/contexts/AuthContext";
 
 // Tipagem do formulário (TypeScript)
 type FormFields = {
@@ -26,6 +27,7 @@ type FormFields = {
 
 export default function Cadastro() {
   const router = useRouter();
+  
   const [form, setForm] = useState<FormFields>({
     nome: "",
     email: "",
@@ -40,6 +42,8 @@ export default function Cadastro() {
   const emailRef    = useRef<TextInput>(null);
   const senhaRef    = useRef<TextInput>(null);
   const confirmaRef = useRef<TextInput>(null);
+
+  const { registrar, isLoading } = useAuth();
 
   const updateField = (field: keyof FormFields, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -63,11 +67,14 @@ export default function Cadastro() {
   const handleCadastro = async () => {
     if (!validate()) return;
 
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      // usar o registrar do contexto (o isLoading do contexto informa o estado)
+      await registrar(form.nome, form.email, form.senha);
+      // NavigationGuard deve redirecionar automaticamente para /(tabs)
       setIsSubmitted(true);
-    }, 2000);
+    } catch (error: any) {
+      Alert.alert("Erro ao criar conta", error.message ?? "Tente novamente.");
+    }
   };
 
   return (
@@ -144,7 +151,7 @@ export default function Cadastro() {
                 />
 
                 <View style={styles.buttonGroup}>
-                  <Button label="Criar Conta" onPress={handleCadastro} loading={loading} fullWidth />
+                  <Button label="Criar Conta" onPress={handleCadastro} loading={isLoading} fullWidth />
                 </View>
                 <Link href="/login" style={styles.haveAccount}>
                   Já tenho uma conta

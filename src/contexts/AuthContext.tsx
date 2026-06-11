@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-//posso colocar esse types no src/types/index.ts ?
+import AsyncStorage from "@react-native-async-storage/async-storage"; 
+import { api } from "@/src/services/api";
 
 type User = { 
   id: string;
@@ -12,9 +11,10 @@ type User = {
 type AuthContextType = {
   user: User | null;
   token: string | null;
-  isLoading: boolean;    
-  isAuthenticated: boolean; 
+  isLoading: boolean;
+  isAuthenticated: boolean;
   login: (email: string, senha: string) => Promise<void>;
+  registrar: (nome: string, email: string, senha: string) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -55,31 +55,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     carregarSessao();
   }, []);
 
+  const salvarSessao = useCallback(async (token: string, user: User) => {
+    await AsyncStorage.multiSet([
+      [STORAGE_KEYS.TOKEN, token],
+      [STORAGE_KEYS.USER, JSON.stringify(user)],
+    ]);
+    setToken(token);
+    setUser(user);
+  }, []);
+
   const login = useCallback(async (email: string, senha: string) => {
     setIsLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      if (!email || !senha) throw new Error("Preencha todos os campos");
-
-      const tokenSimulado = "token_simulado_" + Date.now();
-      const userSimulado: User = {
-        id: "user_1",
-        nome: email.split("@")[0],
-        email,
-      };
-
-      await AsyncStorage.multiSet([
-        [STORAGE_KEYS.TOKEN, tokenSimulado],
-        [STORAGE_KEYS.USER, JSON.stringify(userSimulado)],
-      ]);
-
-      setToken(tokenSimulado);
-      setUser(userSimulado);
+      const { data } = await api.post("/auth/login", { email, senha });
+      // data = { usuario: {...}, token: "eyJ..." }
+      await salvarSessao(data.token, data.usuario);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+    // Se a API retornar erro, o interceptor já formatou a mensagem.
+    // O componente de login deve fazer try/catch e exibir o Alert.
+  }, [salvarSessao]);
+
+  const registrar = useCallback(async (nome: string, email: string, senha: string) => {
+    setIsLoading(true);
+    try {
+      const { data } = await api.post("/auth/registro", { nome, email, senha });
+      await salvarSessao(data.token, data.usuario);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [salvarSessao]);
 
   const logout = useCallback(async () => {
     await AsyncStorage.multiRemove([STORAGE_KEYS.TOKEN, STORAGE_KEYS.USER]);
@@ -88,25 +94,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        isLoading,
-        isAuthenticated: !!token,
-        login,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={{
+      user, token, isLoading,
+      isAuthenticated: !!token,
+      login, registrar, logout,
+    }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth deve ser usado dentro de um <AuthProvider>");
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth deve ser usado dentro de AuthProvider");
+  return ctx;
 }

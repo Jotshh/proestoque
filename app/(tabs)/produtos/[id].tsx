@@ -1,8 +1,5 @@
-// Este arquivo pode ser tanto novo.tsx quanto [id].tsx
-// A diferença é só se o parâmetro 'id' existe na rota
-
 import { useEffect } from "react";
-import { View, ScrollView, StyleSheet, Alert } from "react-native";
+import { View, ScrollView, StyleSheet, Alert, Text, TouchableOpacity } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -48,30 +45,38 @@ export default function FormularioProduto() {
   }, [id]);
 
   const onSubmit = async (data: ProdutoFormData) => {
-    if (modoEdicao && id) {
-      await editarProduto(id, data);
-    } else {
-      await adicionarProduto(data);
+    try {
+      if (modoEdicao && id) {
+        await editarProduto(id, data);
+      } else {
+        await adicionarProduto(data);
+      }
+      router.back();
+    } catch (error: any) {
+      Alert.alert(
+        "Não foi possível salvar",
+        error.message ?? "Verifique sua conexão e tente novamente.",
+        [{ text: "OK" }]
+      );
     }
-    router.back(); // Volta para a lista após salvar
   };
 
   const handleDeletar = () => {
-    Alert.alert(
-      "Excluir produto",
-      "Esta ação não pode ser desfeita. Deseja continuar?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Excluir",
-          style: "destructive",
-          onPress: async () => {
+    Alert.alert("Excluir produto", "Esta ação não pode ser desfeita.", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Excluir",
+        style: "destructive",
+        onPress: async () => {
+          try {
             if (id) await deletarProduto(id);
             router.back();
-          },
+          } catch (error: any) {
+            Alert.alert("Erro ao excluir", error.message ?? "Tente novamente.");
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (

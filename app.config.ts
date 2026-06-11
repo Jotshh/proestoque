@@ -3,6 +3,9 @@ export default {
     name: "ProEstoque",
     slug: "proestoque",
     version: "1.0.0",
+    android: {
+      package: "com.josielphelipe.proestoque",
+    },
     // ... outras configs
 
     extra: {
@@ -12,7 +15,7 @@ export default {
       },
     },
 
-    plugins: [["expo-notifications" ]],
+    plugins: [["expo-notifications"]],
     
   },
 };

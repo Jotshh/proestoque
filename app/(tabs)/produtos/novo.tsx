@@ -1,11 +1,11 @@
 import { useEffect } from "react";
-import { View, ScrollView, Text, Pressable, StyleSheet, Alert } from "react-native";
+import { View, ScrollView, Text, Pressable, StyleSheet, Alert, TouchableOpacity } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { produtoSchema, type ProdutoFormData } from "@/src/schemas/produtoSchema";
 import { useProducts } from "@/src/contexts/ProductsContext";
-import { CATEGORIAS_MOCK } from "@/src/data/mockData";
+import { useCategorias } from "@/src/hooks/useCategorias";
 import Input from "@/src/components/Input";
 import Button from "@/src/components/Button";
 import { Colors, Spacing, Typography, Radius } from "@/src/constants/theme";
@@ -18,6 +18,44 @@ const UNIDADES = [
   { value: "m", label: "Metro" },
 ] as const;
 
+function SeletorCategoria({ control, error }: { control: any; error?: string }) {
+  const { categorias, isLoading } = useCategorias();
+
+  return (
+    <Controller
+      control={control}
+      name="categoriaId"
+      render={({ field: { value, onChange } }) => (
+        <View style={styles.fieldWrapper}>
+          <Text style={styles.fieldLabel}>Categoria *</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.row}>
+              {categorias.map((cat) => {
+                const selected = value === cat.id;
+                return (
+                  <TouchableOpacity
+                    key={cat.id}
+                    style={[styles.chip, selected && styles.chipSelected]}
+                    onPress={() => onChange(cat.id)}
+                  >
+                    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                      {cat.nome}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </ScrollView>
+          {isLoading && <Text style={styles.helperText}>Carregando categorias...</Text>}
+          {!isLoading && categorias.length === 0 && (
+            <Text style={styles.helperText}>Nenhuma categoria disponível.</Text>
+          )}
+          {error && <Text style={styles.errorText}>{error}</Text>}
+        </View>
+      )}
+    />
+  );
+}
 export default function FormularioProduto() {
   // Se vier de [id].tsx, o id está na rota; se vier de novo.tsx, id é undefined
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -53,30 +91,38 @@ export default function FormularioProduto() {
   }, [id]);
 
   const onSubmit = async (data: ProdutoFormData) => {
-    if (modoEdicao && id) {
-      await editarProduto(id, data);
-    } else {
-      await adicionarProduto(data);
+    try {
+      if (modoEdicao && id) {
+        await editarProduto(id, data);
+      } else {
+        await adicionarProduto(data);
+      }
+      router.back();
+    } catch (error: any) {
+      Alert.alert(
+        "Não foi possível salvar",
+        error.message ?? "Verifique sua conexão e tente novamente.",
+        [{ text: "OK" }]
+      );
     }
-    router.back(); // Volta para a lista após salvar
   };
 
   const handleDeletar = () => {
-    Alert.alert(
-      "Excluir produto",
-      "Esta ação não pode ser desfeita. Deseja continuar?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Excluir",
-          style: "destructive",
-          onPress: async () => {
+    Alert.alert("Excluir produto", "Esta ação não pode ser desfeita.", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Excluir",
+        style: "destructive",
+        onPress: async () => {
+          try {
             if (id) await deletarProduto(id);
             router.back();
-          },
+          } catch (error: any) {
+            Alert.alert("Erro ao excluir", error.message ?? "Tente novamente.");
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
@@ -93,29 +139,7 @@ export default function FormularioProduto() {
       />
 
       {/* Campo: Categoria */}
-      <Controller control={control} name="categoriaId"
-        render={({ field: { value, onChange } }) => (
-          <View style={styles.fieldWrapper}>
-            <Text style={styles.fieldLabel}>Categoria *</Text>
-            <View style={styles.chipsRow}>
-              {CATEGORIAS_MOCK.map((cat) => {
-                const selected = value === cat.id;
-                return (
-                  <Pressable key={cat.id} onPress={() => onChange(cat.id)}
-                    style={[styles.chip, selected && styles.chipSelected]}>
-                    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                      {cat.nome}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-            {errors.categoriaId?.message && (
-              <Text style={styles.errorText}>{errors.categoriaId.message}</Text>
-            )}
-          </View>
-        )}
-      />
+      <SeletorCategoria control={control} error={errors.categoriaId?.message} />
 
       {/* Campo: Quantidade */}
       <Controller control={control} name="quantidade"
@@ -213,6 +237,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: Spacing[2],
+  },
+  row: {
+    flexDirection: "row",
+    gap: Spacing[2],
+  },
+  helperText: {
+    marginTop: Spacing[2],
+    fontSize: Typography.fontSize.xs,
+    color: Colors.neutral[400],
   },
   chip: {
     paddingVertical: Spacing[2],

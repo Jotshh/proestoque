@@ -70,8 +70,8 @@ export default function Cadastro() {
     try {
       // usar o registrar do contexto (o isLoading do contexto informa o estado)
       await registrar(form.nome, form.email, form.senha);
-      // NavigationGuard deve redirecionar automaticamente para /(tabs)
-      setIsSubmitted(true);
+      // Redirecionar para /(tabs) após sucesso
+      router.replace("/(tabs)");
     } catch (error: any) {
       Alert.alert("Erro ao criar conta", error.message ?? "Tente novamente.");
     }

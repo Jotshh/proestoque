@@ -4,6 +4,7 @@ import { View, ActivityIndicator } from "react-native";
 import { AuthProvider, useAuth } from "@/src/contexts/AuthContext";
 import { Colors } from "@/src/constants/theme";
 import { ProductsProvider } from "@/src/contexts/ProductsContext";
+import { solicitarPermissaoNotificacoes, agendarVerificacaoDiaria } from "@/src/services/notifications";
 
 function NavigationGuard() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -21,6 +22,19 @@ function NavigationGuard() {
       router.replace("/(tabs)");
     }
   }, [isAuthenticated, isLoading, segments]);
+
+  useEffect(() => {
+    async function configurarNotificacoes() {
+      const temPermissao = await solicitarPermissaoNotificacoes();
+      if (temPermissao) {
+        await agendarVerificacaoDiaria();
+      }
+    }
+
+    if (!isLoading && isAuthenticated) {
+      configurarNotificacoes();
+    }
+  }, [isAuthenticated, isLoading]);
 
   if (isLoading) {
     return (

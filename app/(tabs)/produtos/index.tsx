@@ -9,7 +9,7 @@ import { Colors, Spacing } from "@/src/constants/theme";
 import { useCategorias } from "@/src/hooks/useCategorias";
 import { LoadingView } from "@/src/components/LoadingView";
 import { ErrorView } from "@/src/components/ErrorView";
-
+import { ProdutoListaSkeleton } from "@/src/components/ProdutoSkeleton";
 
 export default function ListaProdutos() {
 
@@ -62,8 +62,12 @@ export default function ListaProdutos() {
 
   // ── Estados de UI ────────────────────────────────────────
   if (isLoading && produtos.length === 0) {
-    // Só mostra loading na primeira carga (sem dados em cache)
-    return <LoadingView mensagem="Buscando produtos..." />;
+
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.background }}>
+        <ProdutoListaSkeleton count={7} />
+      </SafeAreaView>
+    );
   }
 
   if (error && produtos.length === 0) {
@@ -73,6 +77,7 @@ export default function ListaProdutos() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
+      
       <FlatList
         data={produtosFiltrados}
         keyExtractor={(item) => item.id}

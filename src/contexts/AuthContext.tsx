@@ -11,9 +11,10 @@ type User = {
 type AuthContextType = {
   user: User | null;
   token: string | null;
-  isLoading: boolean;    
-  isAuthenticated: boolean; 
+  isLoading: boolean;
+  isAuthenticated: boolean;
   login: (email: string, senha: string) => Promise<void>;
+  registrar: (nome: string, email: string, senha: string) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -54,50 +55,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     carregarSessao();
   }, []);
 
+  const salvarSessao = useCallback(async (token: string, user: User) => {
+    await AsyncStorage.multiSet([
+      [STORAGE_KEYS.TOKEN, token],
+      [STORAGE_KEYS.USER, JSON.stringify(user)],
+    ]);
+    setToken(token);
+    setUser(user);
+  }, []);
+
   const login = useCallback(async (email: string, senha: string) => {
     setIsLoading(true);
     try {
+      const { data } = await api.post("/auth/login", { email, senha });
+      // data = { usuario: {...}, token: "eyJ..." }
+      await salvarSessao(data.token, data.usuario);
+    } finally {
+      setIsLoading(false);
+    }
+    // Se a API retornar erro, o interceptor já formatou a mensagem.
+    // O componente de login deve fazer try/catch e exibir o Alert.
+  }, [salvarSessao]);
 
-      const response = await api.post("/auth/login", { email, senha });
-      const { usuario, token } = response.data;
-
-      await AsyncStorage.multiSet([
-      [STORAGE_KEYS.TOKEN, token],
-      [STORAGE_KEYS.USER, JSON.stringify(usuario)],
-      ]);
-
-      setToken(token);
-    setUser(usuario);
-  } catch (error: any) {
-    // Axios encapsula o erro — o body da resposta fica em error.response.data
-    console.warn("Erro ao fazer login:", error.response?.data ?? error.message);
-    const mensagem = error.response?.data?.erro ?? "Erro ao fazer login";
-    throw new Error(mensagem);
-  } finally {
-    setIsLoading(false);
-  }
-}, []);
-
-const registrar = useCallback(async (nome: string, email: string, senha: string) => {
-  setIsLoading(true);
-  try {
-    const response = await api.post("/auth/registro", { nome, email, senha });
-    const { usuario, token } = response.data;
-
-    await AsyncStorage.multiSet([
-      [STORAGE_KEYS.TOKEN, token],
-      [STORAGE_KEYS.USER, JSON.stringify(usuario)],
-    ]);
-
-    setToken(token);
-    setUser(usuario);
-  } catch (error: any) {
-    const mensagem = error.response?.data?.erro ?? "Erro ao criar conta";
-    throw new Error(mensagem);
-  } finally {
-    setIsLoading(false);
-  }
-}, []);
+  const registrar = useCallback(async (nome: string, email: string, senha: string) => {
+    setIsLoading(true);
+    try {
+      const { data } = await api.post("/auth/registro", { nome, email, senha });
+      await salvarSessao(data.token, data.usuario);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [salvarSessao]);
 
   const logout = useCallback(async () => {
     await AsyncStorage.multiRemove([STORAGE_KEYS.TOKEN, STORAGE_KEYS.USER]);
@@ -106,25 +94,18 @@ const registrar = useCallback(async (nome: string, email: string, senha: string)
   }, []);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        isLoading,
-        isAuthenticated: !!token,
-        login,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={{
+      user, token, isLoading,
+      isAuthenticated: !!token,
+      login, registrar, logout,
+    }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth deve ser usado dentro de um <AuthProvider>");
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth deve ser usado dentro de AuthProvider");
+  return ctx;
 }

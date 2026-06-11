@@ -1,9 +1,12 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
 
 const BASE_URL = __DEV__
   ? "http://10.220.1.53:3333/api"  
   : "https://proestoque-api.onrender.com/api"; 
+
+const API_URL = (Constants.expoConfig?.extra?.apiUrl as string) ?? "http://localhost:3333/api";
 
 export const api = axios.create({
   baseURL: BASE_URL,
@@ -20,13 +23,23 @@ api.interceptors.request.use(async (config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // Se o servidor retornou 401, o token expirou → redirecionar para login
-    if (error.response?.status === 401) {
-      // Emitir um evento ou setar um estado global de "sessão expirada"
-      // Implementar na próxima aula (integração completa)
+  (response) => response, // Sucesso: passa direto
+
+  async (error) => {
+    const status = error.response?.status;
+
+    if (status === 401) {
+      // Token expirado ou inválido → limpa sessão e força re-login
+      await AsyncStorage.multiRemove(["@proestoque:token", "@proestoque:user"]);
+      // O NavigationGuard vai detectar isAuthenticated = false e redirecionar
     }
-    return Promise.reject(error);
+
+    // Extrai a mensagem de erro do backend (se existir) ou usa mensagem genérica
+    const mensagem =
+      error.response?.data?.erro ??
+      (error.code === "ECONNABORTED" ? "Tempo de conexão esgotado" : "Erro de conexão");
+
+    // Rejeita com o erro enriquecido
+    return Promise.reject(new Error(mensagem));
   }
 );

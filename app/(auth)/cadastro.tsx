@@ -2,14 +2,14 @@ import { useState, useRef } from "react";
 import {
   View,
   ScrollView,
-  StyleSheet,
-  SafeAreaView,
+  StyleSheet, TouchableWithoutFeedback, Keyboard,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
   Text,
   TextInput, Alert
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "@/src/components/Button";
 import Input from "@/src/components/Input";
 import { Colors, Radius, Spacing, Typography } from "@/src/constants/theme";
@@ -27,7 +27,7 @@ type FormFields = {
 
 export default function Cadastro() {
   const router = useRouter();
-  
+
   const [form, setForm] = useState<FormFields>({
     nome: "",
     email: "",
@@ -38,9 +38,9 @@ export default function Cadastro() {
   const [loading, setLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const nomeRef     = useRef<TextInput>(null);
-  const emailRef    = useRef<TextInput>(null);
-  const senhaRef    = useRef<TextInput>(null);
+  const nomeRef = useRef<TextInput>(null);
+  const emailRef = useRef<TextInput>(null);
+  const senhaRef = useRef<TextInput>(null);
   const confirmaRef = useRef<TextInput>(null);
 
   const { registrar, isLoading } = useAuth();
@@ -79,88 +79,92 @@ export default function Cadastro() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={{ flex: 1, width: "100%", alignItems: "center" }}>
+          <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
 
-      <LogoProEstoque size="md" />
+          <LogoProEstoque size="md" />
 
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <View style={styles.card}>
-            {isSubmitted ? (
-              <>
-                <Text style={styles.title}>Conta criada!</Text>
-                <Text style={styles.subTitle}>Sua conta foi criada com sucesso.</Text>
+          <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+            <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+              <View style={styles.card}>
+                {isSubmitted ? (
+                  <>
+                    <Text style={styles.title}>Conta criada!</Text>
+                    <Text style={styles.subTitle}>Sua conta foi criada com sucesso.</Text>
 
-                <View style={styles.buttonGroup}>
-                  <Button label="Ir para Login" onPress={() => router.push("/login")} fullWidth />
-                </View>
-              </>
-            ) : (
-              <>
-                <Text style={styles.title}>Criar Conta</Text>
-                <Text style={styles.subTitle}>Preencha seus dados para acessar o ProEstoque.</Text>
+                    <View style={styles.buttonGroup}>
+                      <Button label="Ir para Login" onPress={() => router.push("/login")} fullWidth />
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.title}>Criar Conta</Text>
+                    <Text style={styles.subTitle}>Preencha seus dados para acessar o ProEstoque.</Text>
 
-                <Input
-                  ref={nomeRef}
-                  label="Nome completo"
-                  placeholder="João da Silva"
-                  leftIcon="person"
-                  value={form.nome}
-                  onChangeText={(v) => updateField("nome", v)}
-                  error={errors.nome}
-                  autoCapitalize="words"
-                  returnKeyType="next"
-                  onSubmitEditing={() => emailRef.current?.focus()}
-                />
-                <Input
-                  ref={emailRef}
-                  label="E-mail"
-                  placeholder="seuemail@gmail.com"
-                  leftIcon="at"
-                  value={form.email}
-                  onChangeText={(v) => updateField("email", v)}
-                  error={errors.email}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  returnKeyType="next"
-                  onSubmitEditing={() => senhaRef.current?.focus()}
-                />
-                <Input
-                  ref={senhaRef}
-                  label="Senha"
-                  placeholder="********"
-                  leftIcon="lock-closed-sharp"
-                  value={form.senha}
-                  onChangeText={(v) => updateField("senha", v)}
-                  error={errors.senha}
-                  isPassword
-                  returnKeyType="next"
-                  onSubmitEditing={() => confirmaRef.current?.focus()}
-                />
-                <Input
-                  ref={confirmaRef}
-                  label="Confirmar senha"
-                  placeholder="********"
-                  leftIcon="lock-closed-sharp"
-                  value={form.confirmarSenha}
-                  onChangeText={(v) => updateField("confirmarSenha", v)}
-                  error={errors.confirmarSenha}
-                  isPassword
-                  returnKeyType="done"
-                  onSubmitEditing={handleCadastro}
-                />
+                    <Input
+                      ref={nomeRef}
+                      label="Nome completo"
+                      placeholder="João da Silva"
+                      leftIcon="person"
+                      value={form.nome}
+                      onChangeText={(v) => updateField("nome", v)}
+                      error={errors.nome}
+                      autoCapitalize="words"
+                      returnKeyType="next"
+                      onSubmitEditing={() => emailRef.current?.focus()}
+                    />
+                    <Input
+                      ref={emailRef}
+                      label="E-mail"
+                      placeholder="seuemail@gmail.com"
+                      leftIcon="at"
+                      value={form.email}
+                      onChangeText={(v) => updateField("email", v)}
+                      error={errors.email}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      returnKeyType="next"
+                      onSubmitEditing={() => senhaRef.current?.focus()}
+                    />
+                    <Input
+                      ref={senhaRef}
+                      label="Senha"
+                      placeholder="********"
+                      leftIcon="lock-closed-sharp"
+                      value={form.senha}
+                      onChangeText={(v) => updateField("senha", v)}
+                      error={errors.senha}
+                      isPassword
+                      returnKeyType="next"
+                      onSubmitEditing={() => confirmaRef.current?.focus()}
+                    />
+                    <Input
+                      ref={confirmaRef}
+                      label="Confirmar senha"
+                      placeholder="********"
+                      leftIcon="lock-closed-sharp"
+                      value={form.confirmarSenha}
+                      onChangeText={(v) => updateField("confirmarSenha", v)}
+                      error={errors.confirmarSenha}
+                      isPassword
+                      returnKeyType="done"
+                      onSubmitEditing={handleCadastro}
+                    />
 
-                <View style={styles.buttonGroup}>
-                  <Button label="Criar Conta" onPress={handleCadastro} loading={isLoading} fullWidth />
-                </View>
-                <Link href="/login" style={styles.haveAccount}>
-                  Já tenho uma conta
-                </Link>
-              </>
-            )}
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+                    <View style={styles.buttonGroup}>
+                      <Button label="Criar Conta" onPress={handleCadastro} loading={isLoading} fullWidth />
+                    </View>
+                    <Link href="/login" style={styles.haveAccount}>
+                      Já tenho uma conta
+                    </Link>
+                  </>
+                )}
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </View>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }

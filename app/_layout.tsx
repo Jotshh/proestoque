@@ -36,6 +36,12 @@ function NavigationGuard() {
     }
   }, [isAuthenticated, isLoading]);
 
+  return null;
+}
+
+function NavigationContent() {
+  const { isLoading } = useAuth();
+
   if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: Colors.background }}>
@@ -44,22 +50,20 @@ function NavigationGuard() {
     );
   }
 
-  return null;
+  return (
+    <>
+      <Stack screenOptions={{ headerShown: false }} />
+      <NavigationGuard />
+    </>
+  );
 }
-
 
 export default function RootLayout() {
   return (
     <AuthProvider>
       <ProductsProvider>
-    <Stack screenOptions={{ 
-      headerShown: false,
-        
-    }} />
-
-    <NavigationGuard />
-    </ProductsProvider>
+        <NavigationContent />
+      </ProductsProvider>
     </AuthProvider>
-
   );
 }

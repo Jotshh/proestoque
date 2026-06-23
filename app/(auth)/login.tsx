@@ -40,7 +40,7 @@ export default function Login({ children }: { children: React.ReactNode }) {
 
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
 
         <ScrollView

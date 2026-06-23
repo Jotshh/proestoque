@@ -46,7 +46,7 @@ export default function RecuperarSenha({ children }: { children?: React.ReactNod
 
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
           contentContainerStyle={styles.scroll}

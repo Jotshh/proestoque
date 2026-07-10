@@ -1,50 +1,147 @@
-# Welcome to your Expo app 👋
+# 📦 ProEstoque 📱
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## Get started
+![preview](./github/preview.png)
 
-1. Install dependencies
+<p align="left">
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=TypeScript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React Native" />
+  <img src="https://img.shields.io/badge/Axios-5A29E4?style=for-the-badge&logo=axios&logoColor=white" alt="Axios" />
+  <img src="https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white" alt="Prisma" />
+  <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=SQLite&logoColor=white" alt="SQLite" />
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=PostgreSQL&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Railway-131415?style=for-the-badge&logo=Railway&logoColor=white" alt="Railway" />
+</p>
 
-   ```bash
-   npm install
-   ```
+O **ProEstoque** é um aplicativo mobile completo para gerenciamento inteligente de estoque e mercadorias. Desenvolvido com uma arquitetura robusta e escalável, o ecossistema conta com um aplicativo nativo e uma API REST dedicada, garantindo alta performance e separação clara de responsabilidades.
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## 🚀 Funcionalidades Principais
 
-In the output, you'll find options to open the app in a
+*   **Autenticação Segura:** Fluxo completo de login, registro e logout utilizando tokens JWT com persistência local estável.
+*   **Controle de Acesso:** Guarda de rotas nativa que impede usuários não autenticados de acessarem o painel interno.
+*   **Gerenciamento de Produtos (CRUD):** Criação, listagem, atualização e exclusão de itens com sincronização em tempo real e atualização de estado otimizada.
+*   **Filtros por Categorias:** Abstração de busca e filtragem dinâmica de produtos de forma reativa.
+*   **Tratamento de Erros Resiliente:** Telas customizadas para estados de carregamento (*Loading*) e falhas de conexão (*Error states*).
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 🛠️ Stack Tecnológica
 
-## Get a fresh project
+### **Frontend (Mobile)**
+*   **React Native / Expo** (TypeScript)
+*   **Context API & Reducers** (Gerenciamento de Estado Global)
+*   **Axios** (Com interceptors para injeção automática de JWT e tratamento de erro 401)
+*   **AsyncStorage** (Persistência local do token de sessão)
 
-When you're ready, run:
+### **Backend (API)**
+*   **Node.js** com **Express** (TypeScript)
+*   **Prisma ORM**
+*   **SQLite** (Ambiente de Desenvolvimento Local)
+*   **PostgreSQL** (Ambiente de Produção/Deploy no Railway)
 
-```bash
-npm run reset-project
+---
+
+## ⚙️ Como Executar o Projeto
+1. Clonando o Repositório
+
+```
+git clone https://github.com/Jotshh/proestoque.git
+cd proestoque
+
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Configurando o Backend (https://github.com/Jotshh/proestoque-api)
 
-## Learn more
+2.1 Vá até o endereço https://github.com/Jotshh/proestoque-api e clone o repositório:
 
-To learn more about developing your project with Expo, look at the following resources:
+```
+git clone https://github.com/Jotshh/proestoque-api.git
+cd proestoque-api
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```
+Entre na pasta da API e instale as dependências:
 
-## Join the community
+```
+cd proestoque-api
+npm install
 
-Join our community of developers creating universal apps.
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+2.2 Crie um arquivo .env com a sua string de conexão:
+
+```
+
+DATABASE_URL="file:./dev.db" # Para SQLite local
+PORT=3333
+
+```
+
+2.3 Rode as migrações do Prisma, e popule o banco de dados e inicie o servidor:
+
+```
+
+npx prisma migrate dev
+npm run db:seed
+npm run dev
+
+```
+
+3. Configurando o Frontend Mobile (proestoque)
+
+3.1 Entre na pasta do proestoque e instale as dependências:
+
+```
+
+cd proestoque
+npm install
+
+```
+3.2 Configure a variável de ambiente apontando para o IP da sua máquina ou da sua API:
+
+```
+
+EXPO_PUBLIC_API_URL=http://SEU_IP_AQUI:3333/api
+
+```
+
+3.3 Inicie o Expo Client:
+
+```
+
+npx expo start 
+
+```
+
+---
+
+## 📄 Licença
+
+Este projeto está licenciado sob a MIT License.
+
+---
+
+## 📄 Imagens do Aplicativo
+
+![imagem](./github/preview.png)
+![imagem-tela-sair](./github/tela-sair.png)
+![imagem-adicionar-novo-produto](./github/adicionar-novo-produto.png)
+![imagem-tela-sem-produtos](./github/tela-sem-produtos.png)
+![imagem-tela-com-produtos](./github/tela-com-produtos.png)
+![imagem-tela-criar-conta](./github/tela-criar-conta.png)
+![imagem-tela-login](./github/tela-login.png)
+
+
+## ▶️ Apresentação do Aplicativo em Video
+
+https://www.youtube.com/watch?v=G8SbWYga-DI
+
+---
+
+## 💬 Suporte
+
+Email: josiephelipel265@gmail.com
+
+
+

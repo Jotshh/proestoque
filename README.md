@@ -1,7 +1,9 @@
 # 📦 ProEstoque 📱
 
 
-![preview](./github/preview.png)
+<p align="center">
+  <img src="./github/preview.png" alt="Preview do Aplicativo" width="300" />
+</p>
 
 <p align="left">
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=TypeScript&logoColor=white" alt="TypeScript" />
@@ -124,13 +126,14 @@ Este projeto está licenciado sob a MIT License.
 
 ## 📄 Imagens do Aplicativo
 
-![imagem](./github/preview.png)
-![imagem-tela-sair](./github/tela-sair.png)
-![imagem-adicionar-novo-produto](./github/adicionar-novo-produto.png)
-![imagem-tela-sem-produtos](./github/tela-sem-produtos.png)
-![imagem-tela-com-produtos](./github/tela-com-produtos.png)
-![imagem-tela-criar-conta](./github/tela-criar-conta.png)
-![imagem-tela-login](./github/tela-login.png)
+<p align="center">
+  <img src="./github/tela-login.png" alt="Tela de Login" width="200" />
+  <img src="./github/tela-criar-conta.png" alt="Tela de Criar Conta" width="200" />
+  <img src="./github/tela-sem-produtos.png" alt="Tela Sem Produtos" width="200" />
+  <img src="./github/tela-com-produtos.png" alt="Tela Com Produtos" width="200" />
+  <img src="./github/adicionar-novo-produto.png" alt="Adicionar Novo Produto" width="200" />
+  <img src="./github/tela-sair.png" alt="Tela Sair" width="200" />
+</p>
 
 
 ## ▶️ Apresentação do Aplicativo em Video

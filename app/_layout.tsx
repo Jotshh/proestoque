@@ -4,6 +4,7 @@ import { View, ActivityIndicator } from "react-native";
 import { AuthProvider, useAuth } from "@/src/contexts/AuthContext";
 import { Colors } from "@/src/constants/theme";
 import { ProductsProvider } from "@/src/contexts/ProductsContext";
+import { solicitarPermissaoNotificacoes, agendarVerificacaoDiaria } from "@/src/services/notifications";
 
 function NavigationGuard() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -22,6 +23,25 @@ function NavigationGuard() {
     }
   }, [isAuthenticated, isLoading, segments]);
 
+  useEffect(() => {
+    async function configurarNotificacoes() {
+      const temPermissao = await solicitarPermissaoNotificacoes();
+      if (temPermissao) {
+        await agendarVerificacaoDiaria();
+      }
+    }
+
+    if (!isLoading && isAuthenticated) {
+      configurarNotificacoes();
+    }
+  }, [isAuthenticated, isLoading]);
+
+  return null;
+}
+
+function NavigationContent() {
+  const { isLoading } = useAuth();
+
   if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: Colors.background }}>
@@ -30,22 +50,20 @@ function NavigationGuard() {
     );
   }
 
-  return null;
+  return (
+    <>
+      <Stack screenOptions={{ headerShown: false }} />
+      <NavigationGuard />
+    </>
+  );
 }
-
 
 export default function RootLayout() {
   return (
     <AuthProvider>
       <ProductsProvider>
-    <Stack screenOptions={{ 
-      headerShown: false,
-        
-    }} />
-
-    <NavigationGuard />
-    </ProductsProvider>
+        <NavigationContent />
+      </ProductsProvider>
     </AuthProvider>
-
   );
 }

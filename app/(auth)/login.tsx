@@ -25,7 +25,8 @@ export default function Login({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      await login(email, senha); 
+      await login(email, senha);
+      router.replace("/(tabs)");
     } catch (error: any) {
       Alert.alert("Erro", error?.message ?? "E-mail ou senha inválidos.");
     }
@@ -39,7 +40,7 @@ export default function Login({ children }: { children: React.ReactNode }) {
 
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
 
         <ScrollView

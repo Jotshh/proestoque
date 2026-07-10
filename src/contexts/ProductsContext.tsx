@@ -1,6 +1,7 @@
 import { createContext, useContext, useReducer, useEffect, useCallback, useState } from "react";
 import { api } from "@/src/services/api";
 import type { ProdutoFormData } from "@/src/schemas/produtoSchema";
+import { notificarEstoqueCritico, limparBadge } from "@/src/services/notifications";
 
 // ── Tipos ────────────────────────────────────────────────────
 export type Produto = {
@@ -68,24 +69,27 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
 
   // ── Carregar produtos da API ─────────────────────────────
   const carregarProdutos = useCallback(async () => {
-    dispatch({ type: "LOAD_START" });
-    try {
-      const { data } = await api.get<Produto[]>("/produtos");
-      // Normaliza campos numéricos que podem vir como string/null do backend
-      const normalized = data.map((p) => ({
-        ...p,
-        quantidade: Number(p.quantidade ?? 0),
-        quantidadeMinima: Number(p.quantidadeMinima ?? 0),
-        preco: Number(p.preco ?? 0),
-      }));
-      dispatch({ type: "LOAD_SUCCESS", payload: normalized });
-    } catch (error: any) {
-      dispatch({ type: "LOAD_ERROR", payload: error.message });
+  dispatch({ type: "LOAD_START" });
+  try {
+    const { data } = await api.get<Produto[]>("/produtos");
+    dispatch({ type: "LOAD_SUCCESS", payload: data });
+
+    // Verificar alertas e notificar
+    const criticos = data.filter(p => p.quantidade < p.quantidadeMinima);
+    if (criticos.length > 0) {
+      await notificarEstoqueCritico(criticos);
+    } else {
+      await limparBadge(); // Sem alertas = limpa o badge
     }
-  }, []);
+  } catch (error: any) {
+    dispatch({ type: "LOAD_ERROR", payload: error.message });
+  }
+}, []);
 
   // Carrega ao montar — o JWT já está no interceptor
   useEffect(() => { carregarProdutos(); }, [carregarProdutos]);
+
+  
 
   // ── Criar ────────────────────────────────────────────────
   const adicionarProduto = useCallback(async (data: ProdutoFormData) => {

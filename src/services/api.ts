@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 
 const BASE_URL = __DEV__
-  ? "http://10.220.1.53:3333/api"  
+  ? "http://192.168.1.6:3333/api"  
   : "https://proestoque-api.onrender.com/api"; 
 
 const API_URL = (Constants.expoConfig?.extra?.apiUrl as string) ?? "http://localhost:3333/api";
